@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upscaler</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-hover: #232735;
+            --border: #2a2e3a;
+            --text: #e4e4e7;
+            --text-dim: #8b8d98;
+            --accent: #7c5cfc;
+            --accent-hover: #6a4ae8;
+            --accent-glow: rgba(124, 92, 252, 0.15);
+            --success: #34d399;
+            --error: #f87171;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 720px;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--surface);
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .upload-zone .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.7;
+        }
+
+        .upload-zone p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .upload-zone .browse {
+            color: var(--accent);
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .upload-zone .formats {
+            font-size: 0.8rem;
+            margin-top: 8px;
+            color: var(--text-dim);
+            opacity: 0.6;
+        }
+
+        input[type="file"] { display: none; }
+
+        /* Controls */
+        .controls {
+            display: none;
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-top: 16px;
+        }
+
+        .preview-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .preview-thumb {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-info .name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            word-break: break-all;
+        }
+
+        .file-info .dims {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        .btn-change {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: all 0.15s;
+        }
+
+        .btn-change:hover {
+            border-color: var(--text-dim);
+            color: var(--text);
+        }
+
+        .scale-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .scale-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+            font-size: 0.95rem;
+        }
+
+        .scale-btn:hover {
+            border-color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .scale-btn.active {
+            border-color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .scale-btn .label {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: block;
+        }
+
+        .scale-btn .output-dims {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .btn-upscale {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: var(--accent);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-upscale:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-upscale:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Progress */
+        .progress-section {
+            display: none;
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-top: 16px;
+        }
+
+        .progress-bar-track {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-bar-fill.indeterminate {
+            width: 30%;
+            animation: indeterminate 1.5s ease-in-out infinite;
+        }
+
+        @keyframes indeterminate {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+
+        .progress-text {
+            color: var(--text-dim);
+            font-size: 0.88rem;
+            text-align: center;
+        }
+
+        /* Result */
+        .result-section {
+            display: none;
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-top: 16px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .result-header h3 {
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-dims {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+        }
+
+        /* Comparison Slider */
+        .comparison-container {
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: col-resize;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .comparison-container img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .comparison-after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .comparison-after img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comparison-slider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: white;
+            cursor: col-resize;
+            z-index: 10;
+        }
+
+        .comparison-slider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .comparison-slider::after {
+            content: '◀ ▶';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            color: #333;
+            white-space: nowrap;
+            z-index: 1;
+            letter-spacing: 2px;
+        }
+
+        .comparison-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+
+        .comparison-label {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-download {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: var(--success);
+            color: #0f1117;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+
+        .btn-download:hover { opacity: 0.9; }
+
+        .btn-another {
+            padding: 12px 20px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-another:hover {
+            border-color: var(--text-dim);
+        }
+
+        /* Error */
+        .error-message {
+            display: none;
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            body { padding: 24px 12px; }
+            .preview-row { flex-wrap: wrap; }
+            .result-actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Upscaler</h1>
+        <p class="subtitle">AI-powered upscaling with Real-ESRGAN — runs locally on your Mac</p>
+
+        <!-- Upload -->
+        <div class="upload-zone" id="uploadZone">
+            <div class="icon">📷</div>
+            <p>Drag & drop an image here, or <span class="browse">browse</span></p>
+            <p class="formats">JPG, PNG, WebP, BMP, TIFF — max 50MB / 20MP</p>
+        </div>
+        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,.bmp,.tiff,.tif">
+
+        <!-- Controls -->
+        <div class="controls" id="controls">
+            <div class="preview-row">
+                <img class="preview-thumb" id="previewThumb" src="" alt="Preview">
+                <div class="file-info">
+                    <div class="name" id="fileName"></div>
+                    <div class="dims" id="fileDims"></div>
+                </div>
+                <button class="btn-change" id="btnChange">Change</button>
+            </div>
+
+            <div class="scale-selector">
+                <button class="scale-btn active" data-scale="2" id="scaleBtn2">
+                    <span class="label">2x</span>
+                    <span class="output-dims" id="dims2x"></span>
+                </button>
+                <button class="scale-btn" data-scale="4" id="scaleBtn4">
+                    <span class="label">4x</span>
+                    <span class="output-dims" id="dims4x"></span>
+                </button>
+            </div>
+
+            <button class="btn-upscale" id="btnUpscale">Upscale Image</button>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-section" id="progressSection">
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Starting...</div>
+        </div>
+
+        <!-- Error -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- Result -->
+        <div class="result-section" id="resultSection">
+            <div class="result-header">
+                <h3>✓ Upscaled</h3>
+                <span class="result-dims" id="resultDims"></span>
+            </div>
+
+            <div class="comparison-container" id="comparisonContainer">
+                <img id="beforeImg" src="" alt="Before">
+                <div class="comparison-after" id="comparisonAfter">
+                    <img id="afterImg" src="" alt="After">
+                </div>
+                <div class="comparison-slider" id="comparisonSlider"></div>
+            </div>
+            <div class="comparison-labels">
+                <span class="comparison-label">Original</span>
+                <span class="comparison-label">Upscaled</span>
+            </div>
+
+            <div class="result-actions">
+                <a class="btn-download" id="btnDownload" href="#" download>Download</a>
+                <button class="btn-another" id="btnAnother">Upload Another</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+
+        let currentJobId = null;
+        let currentScale = 2;
+        let imgWidth = 0;
+        let imgHeight = 0;
+
+        // Upload zone interactions
+        const uploadZone = $('uploadZone');
+        const fileInput = $('fileInput');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) handleFile(fileInput.files[0]);
+        });
+
+        // Scale buttons
+        document.querySelectorAll('.scale-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentScale = parseInt(btn.dataset.scale);
+            });
+        });
+
+        // Change button
+        $('btnChange').addEventListener('click', () => {
+            resetUI();
+            fileInput.click();
+        });
+
+        // Another button
+        $('btnAnother').addEventListener('click', resetUI);
+
+        // Upscale button
+        $('btnUpscale').addEventListener('click', startUpscale);
+
+        function handleFile(file) {
+            hideError();
+            $('resultSection').style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Show loading state
+            $('btnUpscale').disabled = true;
+            $('btnUpscale').textContent = 'Uploading...';
+            uploadZone.style.display = 'none';
+            $('controls').style.display = 'block';
+
+            fetch('/upload', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        showError(data.error);
+                        resetUI();
+                        return;
+                    }
+
+                    currentJobId = data.job_id;
+                    imgWidth = data.width;
+                    imgHeight = data.height;
+
+                    // Set preview
+                    $('previewThumb').src = `/uploads/${data.filename}`;
+                    $('fileName').textContent = file.name;
+                    $('fileDims').textContent = `${data.width} × ${data.height}`;
+                    $('dims2x').textContent = `→ ${data.width * 2} × ${data.height * 2}`;
+                    $('dims4x').textContent = `→ ${data.width * 4} × ${data.height * 4}`;
+
+                    $('btnUpscale').disabled = false;
+                    $('btnUpscale').textContent = 'Upscale Image';
+                })
+                .catch(err => {
+                    showError('Upload failed: ' + err.message);
+                    resetUI();
+                });
+        }
+
+        function startUpscale() {
+            if (!currentJobId) return;
+            hideError();
+
+            $('btnUpscale').disabled = true;
+            $('btnUpscale').textContent = 'Processing...';
+            $('progressSection').style.display = 'block';
+            $('resultSection').style.display = 'none';
+
+            const fill = $('progressFill');
+            fill.style.width = '0%';
+            fill.classList.add('indeterminate');
+
+            const source = new EventSource(`/upscale/${currentJobId}?scale=${currentScale}`);
+
+            source.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                $('progressText').textContent = data.message;
+
+                if (data.stage === 'processing' && data.total > 0) {
+                    fill.classList.remove('indeterminate');
+                    const pct = Math.round(data.current / data.total * 100);
+                    fill.style.width = pct + '%';
+                }
+
+                if (data.stage === 'complete') {
+                    source.close();
+                    fill.classList.remove('indeterminate');
+                    fill.style.width = '100%';
+
+                    setTimeout(() => {
+                        $('progressSection').style.display = 'none';
+                        showResult(data);
+                    }, 500);
+                }
+
+                if (data.stage === 'error') {
+                    source.close();
+                    $('progressSection').style.display = 'none';
+                    showError(data.message);
+                    $('btnUpscale').disabled = false;
+                    $('btnUpscale').textContent = 'Upscale Image';
+                }
+            };
+
+            source.onerror = () => {
+                source.close();
+                $('progressSection').style.display = 'none';
+                showError('Connection lost. Please try again.');
+                $('btnUpscale').disabled = false;
+                $('btnUpscale').textContent = 'Upscale Image';
+            };
+        }
+
+        function showResult(data) {
+            $('resultSection').style.display = 'block';
+            $('resultDims').textContent = `${data.output_width} × ${data.output_height}`;
+
+            const beforeSrc = $('previewThumb').src;
+            const afterSrc = `/outputs/${data.output_filename}`;
+
+            $('beforeImg').src = beforeSrc;
+            $('afterImg').src = afterSrc;
+            $('btnDownload').href = `/download/${data.output_filename}`;
+
+            // Reset slider to middle
+            setSliderPosition(0.5);
+
+            $('btnUpscale').disabled = false;
+            $('btnUpscale').textContent = 'Upscale Image';
+        }
+
+        // Comparison slider
+        function setSliderPosition(ratio) {
+            ratio = Math.max(0, Math.min(1, ratio));
+            const pct = ratio * 100;
+            $('comparisonSlider').style.left = pct + '%';
+            $('comparisonAfter').style.clipPath = `inset(0 0 0 ${pct}%)`;
+        }
+
+        let isDragging = false;
+
+        function startDrag(e) {
+            isDragging = true;
+            updateDrag(e);
+        }
+
+        function updateDrag(e) {
+            if (!isDragging) return;
+            const rect = $('comparisonContainer').getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const ratio = (clientX - rect.left) / rect.width;
+            setSliderPosition(ratio);
+        }
+
+        function stopDrag() {
+            isDragging = false;
+        }
+
+        $('comparisonContainer').addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', updateDrag);
+        document.addEventListener('mouseup', stopDrag);
+
+        $('comparisonContainer').addEventListener('touchstart', startDrag, { passive: true });
+        document.addEventListener('touchmove', updateDrag, { passive: true });
+        document.addEventListener('touchend', stopDrag);
+
+        function resetUI() {
+            uploadZone.style.display = '';
+            $('controls').style.display = 'none';
+            $('progressSection').style.display = 'none';
+            $('resultSection').style.display = 'none';
+            hideError();
+            currentJobId = null;
+            fileInput.value = '';
+
+            // Reset scale to 2x
+            document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+            $('scaleBtn2').classList.add('active');
+            currentScale = 2;
+        }
+
+        function showError(msg) {
+            const el = $('errorMessage');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function hideError() {
+            $('errorMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

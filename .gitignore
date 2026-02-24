@@ -1,0 +1,12 @@
+venv/
+models/*.pth
+uploads/*
+outputs/*
+__pycache__/
+*.pyc
+.DS_Store
+
+# Keep the directories via .gitkeep
+!uploads/.gitkeep
+!outputs/.gitkeep
+!models/.gitkeep

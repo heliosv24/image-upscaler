@@ -4,26 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Upscaler</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --bg: #1c1c1e;
-            --bg-secondary: #2c2c2e;
-            --surface: #3a3a3c;
-            --surface-hover: #48484a;
-            --text: #f5f5f7;
-            --text-secondary: #a1a1a6;
-            --text-tertiary: #6e6e73;
+            --bg: #141416;
+            --bg-secondary: #1e1e21;
+            --surface: #2a2a2e;
+            --surface-hover: #353539;
+            --text: #f0f0f3;
+            --text-secondary: #98989f;
+            --text-tertiary: #636369;
             --accent: #0a84ff;
             --accent-hover: #409cff;
-            --accent-dim: rgba(10, 132, 255, 0.15);
+            --accent-dim: rgba(10, 132, 255, 0.12);
             --success: #30d158;
             --error: #ff453a;
             --warning: #ff9f0a;
-            --glass-bg: rgba(44, 44, 46, 0.72);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-blur: 20px;
+            --glass-bg: rgba(30, 30, 33, 0.82);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --glass-blur: 24px;
             --sidebar-w: 260px;
             --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -35,12 +38,28 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             background: var(--bg);
+            background-image:
+                radial-gradient(ellipse 80% 60% at 10% 0%, rgba(10, 132, 255, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 90% 100%, rgba(48, 209, 88, 0.04) 0%, transparent 50%);
             color: var(--text);
             display: flex;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Subtle grain texture */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            opacity: 0.015;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 256px;
+            pointer-events: none;
+            z-index: 9999;
         }
 
         /* ── Sidebar ─────────────────────────────── */
@@ -52,8 +71,8 @@
             display: flex;
             flex-direction: column;
             background: var(--glass-bg);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
             border-right: 1px solid var(--glass-border);
             transition: margin-left 0.3s var(--ease), opacity 0.3s var(--ease);
             z-index: 100;
@@ -326,9 +345,13 @@
         .sidebar.collapsed ~ .main .main-header-toggle { display: flex; }
 
         .main-title {
-            font-size: 17px;
-            font-weight: 600;
-            letter-spacing: -0.02em;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .workspace {
@@ -456,8 +479,9 @@
         .upload-zone h3 {
             font-size: 15px;
             font-weight: 500;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             color: var(--text);
+            letter-spacing: -0.01em;
         }
 
         .upload-zone h3 span {
@@ -741,6 +765,8 @@
             display: block;
             width: 100%;
             height: auto;
+            -webkit-user-drag: none;
+            pointer-events: none;
         }
 
         .comparison-after {
@@ -754,6 +780,8 @@
             display: block;
             width: 100%; height: 100%;
             object-fit: cover;
+            -webkit-user-drag: none;
+            pointer-events: none;
         }
 
         .comparison-handle {
@@ -1038,6 +1066,7 @@
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 6px;
+            letter-spacing: -0.02em;
         }
 
         .no-project-state p {
@@ -1131,7 +1160,7 @@
             <button class="main-header-toggle" id="sidebarOpen" title="Open sidebar">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
-            <h1 class="main-title">Image Upscaler</h1>
+            <h1 class="main-title" id="mainTitle">Image Upscaler</h1>
         </div>
 
         <!-- No project selected state -->
@@ -1211,9 +1240,9 @@
                 </div>
 
                 <div class="comparison" id="comparison">
-                    <img id="beforeImg" src="" alt="Before">
+                    <img id="beforeImg" src="" alt="Before" draggable="false">
                     <div class="comparison-after" id="comparisonAfter">
-                        <img id="afterImg" src="" alt="After">
+                        <img id="afterImg" src="" alt="After" draggable="false">
                     </div>
                     <div class="comparison-handle" id="comparisonHandle"></div>
                 </div>
@@ -1341,28 +1370,39 @@
                 </div>
             `).join('');
 
-            // Bind clicks
-            projectList.querySelectorAll('.project-item').forEach(el => {
-                el.addEventListener('click', (e) => {
-                    if (e.target.closest('.project-item-menu')) return;
-                    selectProject(el.dataset.id);
-                });
+            // Update header title
+            updateHeaderTitle();
+        }
 
-                // Double-click to rename
-                const nameEl = el.querySelector('.project-item-name');
-                nameEl.addEventListener('dblclick', (e) => {
-                    e.stopPropagation();
-                    startInlineRename(nameEl, nameEl.dataset.id);
-                });
-            });
+        // Event delegation on projectList — survives re-renders
+        projectList.addEventListener('click', (e) => {
+            if (e.target.closest('.project-item-menu')) {
+                e.stopPropagation();
+                const btn = e.target.closest('.project-item-menu');
+                showContextMenu(e, btn.dataset.id);
+                return;
+            }
+            const item = e.target.closest('.project-item');
+            if (item) selectProject(item.dataset.id);
+        });
 
-            // Menu buttons
-            projectList.querySelectorAll('.project-item-menu').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    showContextMenu(e, btn.dataset.id);
-                });
-            });
+        projectList.addEventListener('dblclick', (e) => {
+            const nameEl = e.target.closest('.project-item-name');
+            if (nameEl) {
+                e.stopPropagation();
+                e.preventDefault();
+                startInlineRename(nameEl, nameEl.dataset.id);
+            }
+        });
+
+        function updateHeaderTitle() {
+            const title = $('mainTitle');
+            if (state.activeProjectId) {
+                const name = getProjectName(state.activeProjectId);
+                title.textContent = name || 'Image Upscaler';
+            } else {
+                title.textContent = 'Image Upscaler';
+            }
         }
 
         async function selectProject(id) {
@@ -1442,6 +1482,7 @@
                     body: JSON.stringify({ name }),
                 });
                 await loadProjects();
+                updateHeaderTitle();
             } catch (e) {
                 console.error('Failed to rename:', e);
             }
@@ -1511,6 +1552,7 @@
                     state.projectJobs = [];
                     workspace.classList.add('hidden');
                     noProjectState.classList.remove('hidden');
+                    updateHeaderTitle();
                 }
                 await loadProjects();
             } catch (e) {
@@ -1797,12 +1839,14 @@
         let isDragging = false;
 
         function startDrag(e) {
+            e.preventDefault(); // Block native image drag
             isDragging = true;
             updateDrag(e);
         }
 
         function updateDrag(e) {
             if (!isDragging) return;
+            e.preventDefault();
             const rect = $('comparison').getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             setSliderPosition((clientX - rect.left) / rect.width);
@@ -1813,8 +1857,8 @@
         $('comparison').addEventListener('mousedown', startDrag);
         document.addEventListener('mousemove', updateDrag);
         document.addEventListener('mouseup', stopDrag);
-        $('comparison').addEventListener('touchstart', startDrag, { passive: true });
-        document.addEventListener('touchmove', updateDrag, { passive: true });
+        $('comparison').addEventListener('touchstart', startDrag, { passive: false });
+        document.addEventListener('touchmove', (e) => { if (isDragging) updateDrag(e); }, { passive: false });
         document.addEventListener('touchend', stopDrag);
 
         // ── Helpers ──────────────────────────────────

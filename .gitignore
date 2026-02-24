@@ -2,6 +2,7 @@ venv/
 models/*.pth
 uploads/*
 outputs/*
+data/
 __pycache__/
 *.pyc
 .DS_Store

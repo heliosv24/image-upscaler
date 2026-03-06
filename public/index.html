@@ -425,53 +425,300 @@
             font-size: 18px;
         }
 
-        /* ── How It Works ──────────────────────────── */
-        .how-it-works {
+        /* ── Dual CTA group ────────────────────────── */
+        .cta-group {
+            display: inline-flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .cta-btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid rgba(10, 132, 255, 0.3);
+            box-shadow: none;
+        }
+
+        .cta-btn-secondary:hover {
+            background: var(--accent-dim);
+            border-color: rgba(10, 132, 255, 0.5);
+            box-shadow: 0 0 30px 4px rgba(10, 132, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        /* ── Nav actions ──────────────────────────── */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-launch {
+            background: var(--accent);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .nav-launch:hover {
+            background: var(--accent-hover);
+            border-color: transparent;
+        }
+
+        .nav-launch .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+        }
+
+        .nav-launch .status-dot.live {
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(48, 209, 88, 0.5);
+        }
+
+        /* ── Getting Started ──────────────────────── */
+        .getting-started {
             background: var(--bg);
         }
 
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
+        .tutorial-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
             margin-top: 60px;
-        }
-
-        .step {
             position: relative;
         }
 
-        .step-number {
-            font-size: 64px;
+        /* Vertical timeline line */
+        .tutorial-steps::before {
+            content: '';
+            position: absolute;
+            left: 27px;
+            top: 40px;
+            bottom: 40px;
+            width: 1px;
+            background: linear-gradient(to bottom, var(--glass-border), rgba(10, 132, 255, 0.15), var(--glass-border));
+        }
+
+        .tutorial-step {
+            display: flex;
+            gap: 28px;
+            padding: 32px 0;
+            position: relative;
+        }
+
+        .tutorial-step .step-number {
+            flex-shrink: 0;
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
             font-weight: 700;
-            letter-spacing: -0.04em;
-            color: var(--surface);
-            line-height: 1;
-            margin-bottom: 16px;
-            font-variant-numeric: tabular-nums;
-            transition: color 0.3s var(--ease);
+            color: var(--text-tertiary);
+            transition: all 0.3s var(--ease);
+            position: relative;
+            z-index: 1;
         }
 
-        .step:hover .step-number {
-            color: var(--accent-dim);
+        .tutorial-step:hover .step-number {
+            border-color: rgba(10, 132, 255, 0.3);
+            color: var(--accent);
+            background: var(--accent-dim);
         }
 
-        .step h3 {
+        .tutorial-step .step-content {
+            flex: 1;
+            padding-top: 4px;
+        }
+
+        .tutorial-step .step-content h3 {
             font-size: 20px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             letter-spacing: -0.01em;
         }
 
-        .step p {
+        .tutorial-step .step-content > p {
             font-size: 14px;
             color: var(--text-secondary);
             font-weight: 300;
             line-height: 1.6;
+            margin-bottom: 16px;
         }
 
-        .step-connector {
-            display: none;
+        /* GitHub clone button */
+        .github-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s var(--ease);
+            margin-bottom: 12px;
+        }
+
+        .github-btn:hover {
+            background: var(--surface-hover);
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Code blocks */
+        .code-block {
+            position: relative;
+            background: #1a1a1d;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+            overflow-x: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .code-block code {
+            white-space: nowrap;
+        }
+
+        .code-block .prompt {
+            color: var(--accent);
+            user-select: none;
+            margin-right: 8px;
+        }
+
+        .copy-btn {
+            flex-shrink: 0;
+            padding: 4px 10px;
+            background: var(--surface);
+            color: var(--text-tertiary);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s var(--ease);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .copy-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+        }
+
+        .copy-btn.copied {
+            color: var(--success);
+            border-color: rgba(48, 209, 88, 0.3);
+        }
+
+        .step-note {
+            font-size: 12px !important;
+            color: var(--text-tertiary) !important;
+            margin-top: 8px;
+            margin-bottom: 0 !important;
+        }
+
+        /* Video placeholder */
+        .video-frame {
+            aspect-ratio: 16 / 9;
+            max-width: 560px;
+            background: linear-gradient(135deg, #1a1a1d, #222225);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--text-tertiary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-frame::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(10,132,255,0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .video-frame .play-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+
+        .video-frame p {
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        .video-frame video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 11px;
+        }
+
+        /* Launch app toast */
+        .launch-toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 400;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .launch-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+
+        .launch-toast a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
         }
 
         /* ── Final CTA ─────────────────────────────── */
@@ -574,13 +821,36 @@
                 padding: 24px 22px;
             }
 
-            .steps {
-                grid-template-columns: 1fr;
-                gap: 40px;
+            .tutorial-step {
+                gap: 16px;
             }
 
-            .step-number {
-                font-size: 48px;
+            .tutorial-step .step-number {
+                width: 44px;
+                height: 44px;
+                font-size: 15px;
+            }
+
+            .tutorial-steps::before {
+                left: 21px;
+            }
+
+            .cta-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .cta-group .cta-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .video-frame {
+                max-width: 100%;
+            }
+
+            .nav-actions {
+                gap: 6px;
             }
 
             .hero-glow {
@@ -636,10 +906,16 @@
                 </div>
                 Image Upscaler
             </div>
-            <a href="https://github.com/heliosv24/image-upscaler" target="_blank" rel="noopener" class="nav-cta">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                GitHub
-            </a>
+            <div class="nav-actions">
+                <a href="http://localhost:8080/app" class="nav-cta nav-launch" data-launch>
+                    <span class="status-dot"></span>
+                    Launch App
+                </a>
+                <a href="https://github.com/heliosv24/image-upscaler" target="_blank" rel="noopener" class="nav-cta">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    GitHub
+                </a>
+            </div>
         </div>
     </nav>
 
@@ -654,13 +930,17 @@
             <p class="hero-sub reveal reveal-delay-1">
                 Powered by Real-ESRGAN &mdash; the same AI those $10/month sites use &mdash; running 100% on your machine. No uploads to sketchy servers. No watermarks. No subscriptions.
             </p>
-            <div class="reveal reveal-delay-2">
-                <a href="https://github.com/heliosv24/image-upscaler" target="_blank" rel="noopener" class="cta-btn">
-                    Get Started
+            <div class="cta-group reveal reveal-delay-2">
+                <a href="http://localhost:8080/app" class="cta-btn" data-launch>
+                    Launch App
                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M5 12h14m-6-6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </a>
+                <a href="#get-started" class="cta-btn cta-btn-secondary">
+                    Get Started
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 5v14m-7-7l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
             </div>
-            <p class="hero-note reveal reveal-delay-3">Clone the repo. Run one command. Start upscaling.</p>
+            <p class="hero-note reveal reveal-delay-3">Already running? Launch the app. New here? We'll get you set up.</p>
         </div>
     </section>
 
@@ -740,27 +1020,55 @@
         </div>
     </section>
 
-    <!-- ── How It Works ─────────────────────────── -->
-    <section class="how-it-works">
+    <!-- ── Getting Started ──────────────────────── -->
+    <section class="getting-started" id="get-started">
         <div class="container">
-            <div class="section-label reveal">How It Works</div>
-            <h2 class="section-title reveal">Three steps. That's it.</h2>
-            <div class="steps">
-                <div class="step reveal reveal-delay-1">
+            <div class="section-label reveal">Get Started</div>
+            <h2 class="section-title reveal">Up and running in 3 steps.</h2>
+            <div class="tutorial-steps">
+
+                <div class="tutorial-step reveal reveal-delay-1">
                     <div class="step-number">01</div>
-                    <h3>Upload</h3>
-                    <p>Drop any image. JPG, PNG, WebP, BMP, TIFF. Up to 50 MB.</p>
+                    <div class="step-content">
+                        <h3>Clone the repo</h3>
+                        <p>Grab the source code from GitHub.</p>
+                        <a href="https://github.com/heliosv24/image-upscaler" target="_blank" rel="noopener" class="github-btn">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                            View on GitHub
+                        </a>
+                        <div class="code-block">
+                            <code><span class="prompt">$</span>git clone https://github.com/heliosv24/image-upscaler.git</code>
+                            <button class="copy-btn" data-copy="git clone https://github.com/heliosv24/image-upscaler.git">Copy</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="step reveal reveal-delay-2">
+
+                <div class="tutorial-step reveal reveal-delay-2">
                     <div class="step-number">02</div>
-                    <h3>Pick your scale</h3>
-                    <p>2x, 4x, 8x, or 16x. One click. Watch it process in real time.</p>
+                    <div class="step-content">
+                        <h3>Run one command</h3>
+                        <p>Sets up everything automatically &mdash; Python venv, dependencies, model weights.</p>
+                        <div class="code-block">
+                            <code><span class="prompt">$</span>cd image-upscaler && ./start.sh</code>
+                            <button class="copy-btn" data-copy="cd image-upscaler && ./start.sh">Copy</button>
+                        </div>
+                        <p class="step-note">Opens at localhost:8080. First run downloads ~67MB model weights.</p>
+                    </div>
                 </div>
-                <div class="step reveal reveal-delay-3">
+
+                <div class="tutorial-step reveal reveal-delay-3">
                     <div class="step-number">03</div>
-                    <h3>Download</h3>
-                    <p>Get your upscaled image. Choose your format. Done.</p>
+                    <div class="step-content">
+                        <h3>Start upscaling</h3>
+                        <p>Upload an image, pick your scale, download the result.</p>
+                        <div class="video-frame">
+                            <video autoplay muted loop playsinline>
+                                <source src="/static/demo.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
     </section>
@@ -770,10 +1078,14 @@
         <div class="container">
             <h2 class="reveal">Ready to <span class="serif-italic">upscale?</span></h2>
             <p class="final-cta-sub reveal reveal-delay-1">Your images. Your machine. No strings attached.</p>
-            <div class="reveal reveal-delay-2">
-                <a href="https://github.com/heliosv24/image-upscaler" target="_blank" rel="noopener" class="cta-btn">
-                    Get Started
+            <div class="cta-group reveal reveal-delay-2">
+                <a href="http://localhost:8080/app" class="cta-btn" data-launch>
+                    Launch App
                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M5 12h14m-6-6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+                <a href="#get-started" class="cta-btn cta-btn-secondary">
+                    Get Started
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 5v14m-7-7l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </a>
             </div>
         </div>
@@ -787,8 +1099,14 @@
         </div>
     </footer>
 
-    <!-- ── Scroll reveal ────────────────────────── -->
+    <!-- Toast for launch detection -->
+    <div class="launch-toast" id="launchToast">
+        App not running locally. <a href="#get-started">Set it up &darr;</a>
+    </div>
+
+    <!-- ── Scripts ─────────────────────────────── -->
     <script>
+        /* ── Scroll reveal ─────────────────────── */
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -802,6 +1120,64 @@
         });
 
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        /* ── Smart localhost detection ─────────── */
+        let appIsRunning = false;
+
+        async function checkLocalApp() {
+            try {
+                const controller = new AbortController();
+                setTimeout(() => controller.abort(), 1500);
+                await fetch('http://localhost:8080/', {
+                    mode: 'no-cors',
+                    signal: controller.signal
+                });
+                // If we get here (even opaque response), the server is up
+                appIsRunning = true;
+                document.querySelectorAll('.status-dot').forEach(dot => dot.classList.add('live'));
+            } catch (e) {
+                appIsRunning = false;
+            }
+        }
+
+        checkLocalApp();
+
+        // Intercept launch buttons when app isn't running
+        document.addEventListener('click', function(e) {
+            const launchBtn = e.target.closest('[data-launch]');
+            if (!launchBtn) return;
+
+            if (appIsRunning) return; // Let the link work normally
+
+            e.preventDefault();
+            const toast = document.getElementById('launchToast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4000);
+
+            // Scroll to get-started section
+            document.getElementById('get-started').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Hide toast when clicking its link
+        document.querySelector('#launchToast a').addEventListener('click', function() {
+            document.getElementById('launchToast').classList.remove('show');
+        });
+
+        /* ── Copy buttons ──────────────────────── */
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.copy-btn');
+            if (!btn) return;
+
+            const text = btn.dataset.copy;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        });
     </script>
 
 </body>

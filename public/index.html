@@ -49,7 +49,7 @@
             --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; overflow-x: hidden; }
 
         body {
             font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -166,6 +166,7 @@
             text-align: center;
             position: relative;
             padding-top: 80px;
+            overflow: hidden;
         }
 
         .hero-glow {
@@ -588,6 +589,7 @@
             font-size: 13px;
             color: var(--text-secondary);
             overflow-x: auto;
+            max-width: 100%;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -882,6 +884,12 @@
 
             .section-title {
                 font-size: 26px;
+            }
+
+            .code-block code {
+                white-space: pre-wrap;
+                word-break: break-all;
+                font-size: 11px;
             }
         }
 

@@ -178,8 +178,8 @@ def upscale(job_id):
         return jsonify({"error": "Job not found"}), 404
 
     scale = request.args.get("scale", "4", type=str)
-    if scale not in ("2", "4"):
-        return jsonify({"error": "Scale must be 2 or 4"}), 400
+    if scale not in ("2", "4", "8", "16"):
+        return jsonify({"error": "Scale must be 2, 4, 8, or 16"}), 400
     scale = int(scale)
 
     job = jobs[job_id]
@@ -216,6 +216,12 @@ def upscale(job_id):
                     elif stage == "processing":
                         pct = int(current / total * 100) if total > 0 else 0
                         msg = f"Processing tile {current}/{total} ({pct}%)"
+                    elif stage.endswith(" processing"):
+                        # Chained upscale pass, e.g. "Pass 1/2 (4x) processing"
+                        pass_info = stage.replace(" processing", "")
+                        pct = int(current / total * 100) if total > 0 else 0
+                        msg = f"{pass_info} — tile {current}/{total} ({pct}%)"
+                        stage = "processing"
                     elif stage == "saving":
                         msg = "Saving output..."
                     elif stage == "complete":

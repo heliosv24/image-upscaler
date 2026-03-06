@@ -164,36 +164,24 @@ def get_device():
     return torch.device("cpu")
 
 
-def upscale_image(img_path, output_path, scale, progress_callback=None):
-    """
-    Upscale an image using Real-ESRGAN with tile-based processing.
-
-    Args:
-        img_path: Path to input image
-        output_path: Path to save upscaled image
-        scale: Upscale factor (2 or 4)
-        progress_callback: Optional callable(stage, current, total)
-            stage: "loading_model", "processing", "saving", "complete", "error"
-    """
-    device = get_device()
+def _upscale_single_pass(img, scale, device, progress_callback=None, pass_label=""):
+    """Run a single Real-ESRGAN pass (2x or 4x) on a BGR numpy array. Returns upscaled BGR array."""
+    # Wrap callback to prepend pass label for chained upscales
+    if progress_callback and pass_label:
+        raw_cb = progress_callback
+        def progress_callback(stage, current, total):
+            if stage == "processing":
+                raw_cb(f"{pass_label} processing", current, total)
+            elif stage == "loading_model":
+                raw_cb("loading_model", 0, 0)
+            else:
+                raw_cb(stage, current, total)
 
     if progress_callback:
         progress_callback("loading_model", 0, 0)
 
     model = load_model(scale, device)
 
-    # Read image
-    img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-    if img is None:
-        raise ValueError(f"Could not read image: {img_path}")
-
-    # Handle alpha channel
-    has_alpha = img.shape[2] == 4 if len(img.shape) == 3 else False
-    if has_alpha:
-        alpha = img[:, :, 3]
-        img = img[:, :, :3]
-
-    # Try progressively smaller tile sizes on OOM
     tile_sizes = [400, 256, 128]
     result = None
 
@@ -209,7 +197,6 @@ def upscale_image(img_path, output_path, scale, progress_callback=None):
                 elif torch.cuda.is_available():
                     torch.cuda.empty_cache()
                 if tile_size == tile_sizes[-1]:
-                    # Last resort: try CPU
                     print("Falling back to CPU...")
                     device = torch.device("cpu")
                     model = model.to(device)
@@ -219,6 +206,51 @@ def upscale_image(img_path, output_path, scale, progress_callback=None):
 
     if result is None:
         raise RuntimeError("Failed to upscale image")
+
+    return result
+
+
+# Chain definitions: maps a requested scale to a sequence of native model passes
+CHAIN_PASSES = {
+    2: [2],
+    4: [4],
+    8: [4, 2],    # 4x then 2x = 8x
+    16: [4, 4],   # 4x then 4x = 16x
+}
+
+
+def upscale_image(img_path, output_path, scale, progress_callback=None):
+    """
+    Upscale an image using Real-ESRGAN with tile-based processing.
+
+    Args:
+        img_path: Path to input image
+        output_path: Path to save upscaled image
+        scale: Upscale factor (2, 4, 8, or 16)
+        progress_callback: Optional callable(stage, current, total)
+            stage: "loading_model", "processing", "saving", "complete", "error"
+    """
+    device = get_device()
+    passes = CHAIN_PASSES.get(scale)
+    if passes is None:
+        raise ValueError(f"Unsupported scale: {scale}. Use 2, 4, 8, or 16.")
+
+    # Read image
+    img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
+    if img is None:
+        raise ValueError(f"Could not read image: {img_path}")
+
+    # Handle alpha channel
+    has_alpha = img.shape[2] == 4 if len(img.shape) == 3 else False
+    if has_alpha:
+        alpha = img[:, :, 3]
+        img = img[:, :, :3]
+
+    # Run chained passes
+    result = img
+    for i, pass_scale in enumerate(passes):
+        pass_label = f"Pass {i+1}/{len(passes)} ({pass_scale}x)" if len(passes) > 1 else ""
+        result = _upscale_single_pass(result, pass_scale, device, progress_callback, pass_label)
 
     # Handle alpha channel upscale
     if has_alpha:

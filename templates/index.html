@@ -1209,6 +1209,14 @@
                             <span class="seg-label">4x</span>
                             <span class="seg-detail" id="dims4x"></span>
                         </button>
+                        <button class="segmented-btn" data-scale="8">
+                            <span class="seg-label">8x</span>
+                            <span class="seg-detail" id="dims8x"></span>
+                        </button>
+                        <button class="segmented-btn" data-scale="16">
+                            <span class="seg-label">16x</span>
+                            <span class="seg-detail" id="dims16x"></span>
+                        </button>
                     </div>
                 </div>
 
@@ -1678,6 +1686,8 @@
                     $('fileDims').textContent = `${data.width} \u00d7 ${data.height}`;
                     $('dims2x').textContent = `\u2192 ${data.width * 2} \u00d7 ${data.height * 2}`;
                     $('dims4x').textContent = `\u2192 ${data.width * 4} \u00d7 ${data.height * 4}`;
+                    $('dims8x').textContent = `\u2192 ${data.width * 8} \u00d7 ${data.height * 8}`;
+                    $('dims16x').textContent = `\u2192 ${data.width * 16} \u00d7 ${data.height * 16}`;
 
                     $('btnUpscale').disabled = false;
                     $('btnUpscale').innerHTML = `

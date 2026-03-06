@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upscaler — AI Super-Resolution, Locally, Free</title>
+    <meta name="description" content="Free, local AI image upscaler powered by Real-ESRGAN. No uploads, no watermarks, no subscriptions. Runs entirely on your machine.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Image Upscaler — AI Super-Resolution, Locally, Free">
+    <meta property="og:description" content="Free, local AI image upscaler powered by Real-ESRGAN. No uploads to sketchy servers. No watermarks. No subscriptions. Runs 100% on your machine.">
+    <meta property="og:site_name" content="Image Upscaler">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Image Upscaler — Local AI Super-Resolution">
+    <meta name="twitter:description" content="The same AI model those $10/month sites use, running entirely on your machine. No uploads, no watermarks, no BS.">
+
+    <!-- Theme -->
+    <meta name="theme-color" content="#0a84ff">
+    <meta name="color-scheme" content="dark">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #141416;
+            --bg-secondary: #1e1e21;
+            --surface: #2a2a2e;
+            --surface-hover: #353539;
+            --text: #f0f0f3;
+            --text-secondary: #98989f;
+            --text-tertiary: #636369;
+            --accent: #0a84ff;
+            --accent-hover: #409cff;
+            --accent-dim: rgba(10, 132, 255, 0.12);
+            --success: #30d158;
+            --glass-bg: rgba(30, 30, 33, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --glass-blur: 28px;
+            --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ── Noise overlay ─────────────────────────── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.018;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 200px;
+        }
+
+        /* ── Typography ────────────────────────────── */
+        .display-font {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-style: italic;
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+
+        /* ── Layout ────────────────────────────────── */
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section {
+            padding: 120px 0;
+        }
+
+        /* ── Nav ───────────────────────────────────── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            background: rgba(20, 20, 22, 0.72);
+            backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+            border-bottom: 1px solid var(--glass-border);
+            transition: background 0.3s var(--ease);
+        }
+
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .wordmark {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .wordmark-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s var(--ease);
+        }
+
+        .nav-cta:hover {
+            background: var(--surface-hover);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        /* ── Hero ──────────────────────────────────── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            padding-top: 80px;
+        }
+
+        .hero-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -55%);
+            width: 900px;
+            height: 600px;
+            background: radial-gradient(ellipse at center,
+                rgba(10, 132, 255, 0.12) 0%,
+                rgba(10, 132, 255, 0.04) 35%,
+                transparent 70%
+            );
+            pointer-events: none;
+            filter: blur(40px);
+        }
+
+        .hero-glow-secondary {
+            position: absolute;
+            top: 30%;
+            left: 60%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 400px;
+            background: radial-gradient(ellipse at center,
+                rgba(130, 80, 255, 0.06) 0%,
+                transparent 65%
+            );
+            pointer-events: none;
+            filter: blur(60px);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 780px;
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 7vw, 76px);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 .accent-word {
+            color: var(--accent);
+        }
+
+        .hero h1 .serif-italic {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-style: italic;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-sub {
+            font-size: clamp(16px, 2vw, 19px);
+            color: var(--text-secondary);
+            max-width: 580px;
+            margin: 0 auto 40px;
+            line-height: 1.65;
+            font-weight: 300;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 36px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 100px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+            box-shadow: 0 0 0 0 rgba(10, 132, 255, 0);
+        }
+
+        .cta-btn:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 0 40px 8px rgba(10, 132, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .cta-btn svg {
+            transition: transform 0.2s var(--ease);
+        }
+
+        .cta-btn:hover svg {
+            transform: translateX(3px);
+        }
+
+        .hero-note {
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        /* ── Features ──────────────────────────────── */
+        .features {
+            background: var(--bg);
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .section-label::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        .section-title {
+            font-size: clamp(28px, 4vw, 42px);
+            margin-bottom: 60px;
+            max-width: 500px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(1.2);
+            -webkit-backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px 28px;
+            transition: all 0.3s var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--accent-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .feature-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            font-weight: 300;
+        }
+
+        /* ── Story ─────────────────────────────────── */
+        .story {
+            background: var(--bg-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .story::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 300px;
+            background: radial-gradient(ellipse at center, rgba(10,132,255,0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .story-content {
+            max-width: 680px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+        }
+
+        .story-quote {
+            position: relative;
+            padding: 0;
+        }
+
+        .story-quote .big-quote {
+            font-size: 120px;
+            font-family: 'Instrument Serif', Georgia, serif;
+            color: var(--accent);
+            opacity: 0.15;
+            position: absolute;
+            top: -60px;
+            left: -20px;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .story-quote p {
+            font-size: clamp(17px, 2.2vw, 20px);
+            line-height: 1.7;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .story-quote p strong {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .story-attribution {
+            margin-top: 32px;
+            font-size: 15px;
+            color: var(--text-tertiary);
+            font-style: italic;
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 18px;
+        }
+
+        /* ── How It Works ──────────────────────────── */
+        .how-it-works {
+            background: var(--bg);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 60px;
+        }
+
+        .step {
+            position: relative;
+        }
+
+        .step-number {
+            font-size: 64px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            color: var(--surface);
+            line-height: 1;
+            margin-bottom: 16px;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.3s var(--ease);
+        }
+
+        .step:hover .step-number {
+            color: var(--accent-dim);
+        }
+
+        .step h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .step p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .step-connector {
+            display: none;
+        }
+
+        /* ── Final CTA ─────────────────────────────── */
+        .final-cta {
+            background: var(--bg-secondary);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-cta::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 400px;
+            background: radial-gradient(ellipse at center, rgba(10,132,255,0.06) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        .final-cta h2 {
+            font-size: clamp(32px, 5vw, 52px);
+            margin-bottom: 12px;
+        }
+
+        .final-cta h2 .serif-italic {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .final-cta-sub {
+            color: var(--text-secondary);
+            font-size: 17px;
+            font-weight: 300;
+            margin-bottom: 36px;
+        }
+
+        /* ── Footer ────────────────────────────────── */
+        footer {
+            padding: 32px 0;
+            border-top: 1px solid var(--glass-border);
+            background: var(--bg);
+        }
+
+        footer .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        footer p {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 300;
+        }
+
+        footer a {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.15s var(--ease);
+        }
+
+        footer a:hover {
+            color: var(--text-secondary);
+        }
+
+        /* ── Fade-in animations ────────────────────── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.35s; }
+        .reveal-delay-5 { transition-delay: 0.4s; }
+        .reveal-delay-6 { transition-delay: 0.45s; }
+
+        /* ── Responsive ────────────────────────────── */
+        @media (max-width: 768px) {
+            section { padding: 80px 0; }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .feature-card {
+                padding: 24px 22px;
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .step-number {
+                font-size: 48px;
+            }
+
+            .hero-glow {
+                width: 500px;
+                height: 400px;
+            }
+
+            .story-quote .big-quote {
+                font-size: 80px;
+                top: -40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 0 16px; }
+
+            .cta-btn {
+                padding: 14px 28px;
+                font-size: 15px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero-sub {
+                font-size: 15px;
+            }
+
+            .section-title {
+                font-size: 26px;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Nav ──────────────────────────────────── -->
+    <nav>
+        <div class="container">
+            <div class="wordmark">
+                <div class="wordmark-icon">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                        <path d="M4 14l5-5 4 4 7-7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 7h4v4" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                Image Upscaler
+            </div>
+            <a href="https://github.com/heliosv24/image-upscaler" target="_blank" rel="noopener" class="nav-cta">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- ── Hero ─────────────────────────────────── -->
+    <section class="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-glow-secondary"></div>
+        <div class="hero-content">
+            <h1 class="reveal">
+                Upscale your images<br>with AI. <span class="serif-italic">Locally.</span><br><span class="accent-word">For free.</span>
+            </h1>
+            <p class="hero-sub reveal reveal-delay-1">
+                Powered by Real-ESRGAN &mdash; the same AI those $10/month sites use &mdash; running 100% on your machine. No uploads to sketchy servers. No watermarks. No subscriptions.
+            </p>
+            <div class="reveal reveal-delay-2">
+                <a href="https://github.com/heliosv24/image-upscaler" target="_blank" rel="noopener" class="cta-btn">
+                    Get Started
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M5 12h14m-6-6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+            </div>
+            <p class="hero-note reveal reveal-delay-3">Clone the repo. Run one command. Start upscaling.</p>
+        </div>
+    </section>
+
+    <!-- ── Features ─────────────────────────────── -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-label reveal">Features</div>
+            <h2 class="section-title reveal">Everything you need. Nothing you don't.</h2>
+            <div class="features-grid">
+                <div class="feature-card reveal reveal-delay-1">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3>AI Super-Resolution</h3>
+                    <p>Real-ESRGAN neural network. Actual super-resolution, not bicubic stretching.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-2">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </div>
+                    <h3>100% Local</h3>
+                    <p>Your images never leave your machine. Zero network requests during upscaling.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-3">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3>GPU Accelerated</h3>
+                    <p>Apple Silicon MPS, NVIDIA CUDA, or automatic CPU fallback.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-4">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m4-5l5-5 5 5m-5-5v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3>Up to 16x</h3>
+                    <p>Chain multiple AI passes for extreme upscaling. 2x, 4x, 8x, or 16x.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-5">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3>Real-Time Progress</h3>
+                    <p>Watch tiles process live as they upscale. Server-sent events streaming.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-6">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6m-4 5H8m8 4H8m2-8H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3>Multiple Formats</h3>
+                    <p>Export as PNG, JPEG, WebP, or PDF. Custom filenames supported.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Story ────────────────────────────────── -->
+    <section class="story">
+        <div class="container">
+            <div class="story-content reveal">
+                <div class="section-label" style="justify-content: center;">Why This Exists</div>
+                <div class="story-quote">
+                    <span class="big-quote">&ldquo;</span>
+                    <p>
+                        I needed to upscale an image. Every site online either wanted $10/month, plastered watermarks over the output, or wanted me to upload to some random server. <strong>So I just built it myself.</strong>
+                    </p>
+                    <br>
+                    <p>
+                        Not in a weekend. Not after a tutorial series. I opened Claude Code, described what I wanted, and had a working app in about an hour. The AI model those paid services use &mdash; Real-ESRGAN &mdash; is open source. They were just selling me <strong>a wrapper around free technology.</strong>
+                    </p>
+                    <br>
+                    <p>
+                        That's the world we live in now. The gap between <em>"I wish this existed"</em> and <em>"I built it"</em> has collapsed.
+                    </p>
+                </div>
+                <div class="story-attribution">&mdash; Harry</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── How It Works ─────────────────────────── -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-label reveal">How It Works</div>
+            <h2 class="section-title reveal">Three steps. That's it.</h2>
+            <div class="steps">
+                <div class="step reveal reveal-delay-1">
+                    <div class="step-number">01</div>
+                    <h3>Upload</h3>
+                    <p>Drop any image. JPG, PNG, WebP, BMP, TIFF. Up to 50 MB.</p>
+                </div>
+                <div class="step reveal reveal-delay-2">
+                    <div class="step-number">02</div>
+                    <h3>Pick your scale</h3>
+                    <p>2x, 4x, 8x, or 16x. One click. Watch it process in real time.</p>
+                </div>
+                <div class="step reveal reveal-delay-3">
+                    <div class="step-number">03</div>
+                    <h3>Download</h3>
+                    <p>Get your upscaled image. Choose your format. Done.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Final CTA ────────────────────────────── -->
+    <section class="final-cta">
+        <div class="container">
+            <h2 class="reveal">Ready to <span class="serif-italic">upscale?</span></h2>
+            <p class="final-cta-sub reveal reveal-delay-1">Your images. Your machine. No strings attached.</p>
+            <div class="reveal reveal-delay-2">
+                <a href="https://github.com/heliosv24/image-upscaler" target="_blank" rel="noopener" class="cta-btn">
+                    Get Started
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M5 12h14m-6-6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Footer ───────────────────────────────── -->
+    <footer>
+        <div class="container">
+            <p>Built with frustration and <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a>.</p>
+            <a href="https://github.com/heliosv24/image-upscaler" target="_blank" rel="noopener">GitHub</a>
+        </div>
+    </footer>
+
+    <!-- ── Scroll reveal ────────────────────────── -->
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+
+</body>
+</html>

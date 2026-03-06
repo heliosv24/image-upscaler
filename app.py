@@ -53,7 +53,12 @@ jobs = {}
 # ── Page ──────────────────────────────────────────────────────
 
 @app.route("/")
-def index():
+def landing():
+    return render_template("landing.html")
+
+
+@app.route("/app")
+def app_page():
     return render_template("index.html")
 
 
